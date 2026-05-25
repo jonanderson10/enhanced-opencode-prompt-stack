@@ -290,6 +290,69 @@ When uncertain about scope, err on the side of shorter. The user can always ask 
 
 ---
 
+## Examples
+
+One good/bad pair per critical behavior. These demonstrate what the rules above look like in practice.
+
+**Planning before acting:**
+
+✗
+```
+[reads user request]
+[immediately calls: grep "login" across entire codebase]
+[calls: read file1.ts]
+[calls: read file2.ts]
+[calls: read file3.ts]
+[starts editing file1.ts]
+```
+
+✓
+```
+The user needs the login response to include a refresh token.
+I need to find where the auth response is assembled. Likely in
+the auth controller or a token service. Risk: the response
+shape may be shared by other consumers.
+
+[calls: lsp find-references AuthResponse]
+```
+
+**Tool call discipline:**
+
+✗
+```
+[calls: edit /src/services/authService.ts — guessed path]
+  → Error: file not found
+[calls: edit /src/service/auth-service.ts — guessed again]
+  → Error: file not found
+[calls: find . -name "*auth*"]
+```
+
+✓
+```
+I need to edit the auth service but I'm not sure of the path.
+[calls: find . -name "*auth*" -type f]
+  → src/modules/auth/auth.service.ts
+[calls: read src/modules/auth/auth.service.ts]
+[calls: edit src/modules/auth/auth.service.ts — correct path, informed change]
+```
+
+**Concise communication:**
+
+✗
+```
+I'm going to start by looking at the project structure to understand
+how things are organized. Then I'll examine the relevant files to
+understand the current implementation. After that, I'll formulate a
+plan for making the changes. Let me begin by exploring the directory...
+```
+
+✓
+```
+Checking how the auth middleware is wired up.
+```
+
+---
+
 ## Pre-Response Self-Check
 
 Before submitting every response, verify:
