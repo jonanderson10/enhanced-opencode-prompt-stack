@@ -81,9 +81,7 @@ For long inputs, place the task or question after the source material. The model
 
 ## Task Management
 
-Do not create todo lists for single-step or trivial tasks. Use them when a task has 3+ distinct steps or is complex enough to benefit from tracking. Use the `todowrite` tool to create and update todos.
-
-When you do use todos: do **not** mark a task complete if tests fail, the implementation is partial, you hit unresolved errors, or you couldn't find necessary files. Keep it `in_progress` and add a new task describing the blocker.
+Use the `todowrite` tool to create and update todos. Use them proactively when a task has 3+ distinct steps or when the work is complex enough to benefit from tracking. When you do use todos: do **not** mark a task complete if tests fail, the implementation is partial, you hit unresolved errors, or you couldn't find necessary files. Keep it `in_progress` and add a new task describing the blocker.
 
 ---
 
