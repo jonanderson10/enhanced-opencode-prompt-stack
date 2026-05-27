@@ -13,7 +13,7 @@ OpenCode reads `AGENTS.md` to govern how its AI agent behaves — parallel tool 
 - Terse, signal-dense communication style with no emoji
 - Task tracking rules (when to use todos vs. when not to)
 - Blocker handling — surface, don't silently workaround
-- External knowledge tool hierarchy (Context7 → web search → web fetch)
+- External knowledge tool hierarchy (ctx_fetch_and_index → Context7 → web search → web fetch)
 - Subagent prompting principles
 - Code quality rules: no defensive over-engineering, no backward-compat shims, no what-comments
 - Self-review checklist after every implementation
@@ -53,7 +53,7 @@ Project-level `AGENTS.md` files take precedence over the global one, so you can 
 The file is plain markdown with clearly labeled sections. Strip or replace any section that doesn't fit your workflow. Common edits:
 
 - **Git conventions** — swap out Conventional Commits for your team's format
-- **External knowledge tools** — remove the context-mode section if you're not using that plugin
+- **Context-mode tools** — if you're not using the context-mode plugin, strip the `ctx_*` references woven into Tool Use Protocol, External Knowledge Tools, and Research & Navigation
 - **Communication style** — adjust verbosity rules to taste
 
 ## Why Not Just Use Claude Code?

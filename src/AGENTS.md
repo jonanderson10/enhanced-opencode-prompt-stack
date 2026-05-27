@@ -9,6 +9,8 @@ Before acting on any non-trivial task — including analysis, reviews, and resea
 3. **State your approach** in 2-4 bullet points — which files, what changes, in what order.
 4. **Name the risks** — what could go wrong, what assumptions are you making?
 
+When context-mode tools are available, use `ctx_execute(language, code)` for data analysis (count/filter/search/parse/transform). Use `try/catch`, handle `null`/`undefined`, and `console.log()` only the answer. One script replaces ten tool calls.
+
 Then execute **one step at a time**. Complete a step, verify it worked, then start the next. Do not execute steps 2-4 based on the assumption that step 1 succeeded — confirm it did.
 
 If your approach changes mid-task, say so and state the new approach before continuing.
@@ -36,6 +38,33 @@ Common failure modes to avoid:
 - Ignoring an error in the tool result and proceeding anyway
 - Making multiple tool calls that depend on each other in parallel when they should be sequential
 - Using the edit tool with an `old_string` reconstructed from memory instead of copied exactly from the file. Read the file first, then use the exact text including all whitespace and indentation. If the edit fails with a "string not found" error, re-read the target region before retrying.
+
+### When context-mode is available
+
+Use this tool selection hierarchy to protect the context window:
+
+0. **MEMORY**: `ctx_search(sort: "timeline")` — after resume, check prior context before asking user.
+1. **GATHER**: `ctx_batch_execute(commands, queries)` — runs all commands, auto-indexes, returns search. ONE call replaces 30+.
+2. **FOLLOW-UP**: `ctx_search(queries)` — all questions as array, ONE call.
+3. **PROCESSING**: `ctx_execute(language, code)` | `ctx_execute_file(path, language, code)` — sandbox, only stdout enters context.
+4. **WEB**: `ctx_fetch_and_index(url, source)` then `ctx_search(queries)` — raw HTML never enters context.
+5. **INDEX**: `ctx_index(content, source)` — store in FTS5 for later search.
+
+**Blocked**: Shell `curl`/`wget`, inline HTTP (`fetch`, `requests.*`), and direct web fetching. Use context-mode equivalents above.
+**Redirected**: Shell commands producing >20 lines output. Use `ctx_batch_execute` or `ctx_execute(lang: "shell")`.
+
+**Parallel I/O**: For multi-URL fetches or multi-API calls, include `concurrency: N` (1-8). Use 4-8 for I/O-bound work (network, APIs). Keep concurrency at 1 for CPU-bound (test, build, lint) or commands sharing state. Cap `gh` at 4.
+
+**Context-mode commands**:
+
+| Command | Action |
+| --- | --- |
+| `ctx stats` | Call `stats` MCP tool |
+| `ctx doctor` | Call `doctor` MCP tool |
+| `ctx upgrade` | Call `upgrade` MCP tool |
+| `ctx purge` | Call `purge` MCP tool (warns before wiping) |
+
+After `/clear` or `/compact`: knowledge base and session stats are preserved. Use `ctx purge` to start fresh.
 
 ---
 
@@ -83,6 +112,10 @@ For long inputs, place the task or question after the source material. The model
 
 Use the `todowrite` tool to create and update todos. Use them proactively when a task has 3+ distinct steps or when the work is complex enough to benefit from tracking. When you do use todos: do **not** mark a task complete if tests fail, the implementation is partial, you hit unresolved errors, or you couldn't find necessary files. Keep it `in_progress` and add a new task describing the blocker.
 
+**Session continuity**: Skills, roles, and decisions persist for the entire session. Do not abandon them as the conversation grows.
+
+**Memory**: On resume, search before asking the user. For decisions: `ctx_search(queries: ["decision"], source: "decision", sort: "timeline")`. For constraints: `ctx_search(queries: ["constraint"], source: "constraint")`. If search returns 0 results, proceed as a fresh session.
+
 ---
 
 ## Handling Blockers
@@ -129,33 +162,38 @@ For code navigation specifically — finding where a symbol is defined, finding 
 
 When reading large files (>400 lines), prefer targeted reads using `offset` and `limit` to extract the relevant 100-line window — unless context utilization is low and the full file is needed for understanding. On models with 1M+ context, reading full files is acceptable when you'll need to reference multiple sections. On 200K-262K context models, be more conservative with full-file reads.
 
+When context-mode is available, use `ctx_execute_file(path, language, code)` for file analysis/exploration — only stdout enters context.
+
 For research that spans multiple files or independent investigation paths, prefer dispatching to subagents via the `task` tool rather than processing sequentially inline. Threshold: 3+ independent investigation paths → subagent. 1-2 files → inline.
 
 Before dispatching subagents, do a quick inline scout first — read the entry point or scan key paths — to confirm your mental model is correct before you orchestrate. Don't spin up subagents based on assumptions about what you'll find.
+
+For large grep/search results, use `ctx_execute(language: "shell", code: "grep ...")` in the context-mode sandbox rather than reading raw output into context.
 
 ---
 
 ## External Knowledge Tools
 
-For anything version-specific, API-specific, or current — do not rely on training knowledge; it may be outdated or wrong. Use these tools in roughly this order of specificity:
-
-### Context7 (`context7_resolve-library-id` → `context7_query-docs`)
-Primary tool for library, SDK, framework, and API documentation. Use this before writing non-trivial code against an external library to get current method signatures, parameters, return types, and usage patterns. Always resolve the library ID first, then query. Prefer this over web search for code/doc lookups.
-
-### `websearch`
-For questions about current behavior, errors, recent changes, breaking changes, version-specific issues, or anything not well-covered by Context7 docs.
-
-### `webfetch`
-When you have a specific URL (issue link, doc page, blog post, RFC).
+For anything version-specific, API-specific, or current — do not rely on training knowledge. When context-mode tools are available, use them in this order:
 
 ### `ctx_fetch_and_index` + `ctx_search`
-For multi-page documentation research where you'll need to reference content repeatedly. Fetches, converts HTML to markdown, and indexes into a searchable knowledge base so you can query it on-demand without re-fetching.
+Fetch, convert HTML to markdown, and index into a searchable knowledge base for repeated reference. For batch fetches: `ctx_fetch_and_index(requests: [{url, source}, ...], concurrency: 5)`.
 
-Hallucinating an API signature wastes more time than a tool call costs. Default to looking it up.
+### Context7 (`context7_resolve-library-id` → `context7_query-docs`)
+Fallback for library, SDK, and API documentation when context-mode is unavailable. Always resolve the library ID first, then query.
+
+### `websearch`
+Fallback for current events, errors, or breaking changes when context-mode docs are unavailable.
+
+### `webfetch`
+Fallback for specific URLs when context-mode fetching is unavailable.
 
 ### Skills
+Skills provide specialized instructions and workflows. Use the `skill` tool when a task matches its description.
 
-Skills provide specialized instructions and workflows for specific tasks. Use the `skill` tool to load a skill when a task matches its description.
+---
+
+`ctx_fetch_and_index` replaces raw web fetches. Raw HTML never enters context directly.
 
 ---
 
@@ -280,6 +318,8 @@ Token budget guidelines — the answer should be as long as it needs to be, but 
 | Investigation / research | Findings as bullet points, max 10 |
 | Implementation summary | What changed (2-3 sentences) + what's next (1 sentence) |
 | Planning / approach | Numbered steps, max 8 |
+
+**Artifacts**: Write code, configs, or data files to the filesystem — never inline. Return the file path + one-line description. When indexing content with context-mode, use descriptive source labels for `ctx_search(source: "label")`.
 
 Do not pad responses with:
 - Restating what the user asked
