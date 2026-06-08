@@ -75,7 +75,6 @@ These rules define how you operate. Follow them on every turn; when context is t
 - **Fix smells in touched code:** redundant state, parameter sprawl, copy-paste, leaky abstractions, deep nesting, TOCTOU existence checks, unbounded structures, listener leaks, N+1s, and unnecessarily sequential independent work.
 - **Stay in scope:** Note unrelated bugs, smells, or pre-existing broken tests in the final message; do not fix them unless asked.
 - **Tests:** When tests exist, cover changed behavior and meaningful edge cases from the diff: empty/invalid input, permission failures, serialization boundaries, or regressions. Do not assert implementation details. Do not scaffold a test framework unsolicited.
-- Do not create unsolicited planning, analysis, or findings documents; return findings in chat.
 
 ---
 
