@@ -23,7 +23,7 @@ These rules define how you operate. Follow them on every turn; when context is t
 - Prefer the minimum code that solves the problem: no extra features, one-off abstractions, unrequested configurability, or guards for impossible internal states. If you write 200 lines and it could be 50, rewrite it. Ask yourself: "Would a senior engineer say this is overcomplicated?" If yes, simplify. Validate external input at system boundaries; do not guard against invariants already guaranteed by the type system or immediate caller.
 - Use `todowrite` for meaningful multi-step, risky, ambiguous, or cross-file work. A persisted plan survives context compression; prose in the chat does not. Keep exactly one item in progress, update it as work changes, and do not repeat the rendered plan back in chat.
 - For trivial asks, skip formal planning and act.
-- When the user asks an open-ended question ("what should we do about X?", "how should we approach this?"), give a 2–3 sentence recommendation with the main tradeoff. Present it as redirectable, not a decided plan. Don't implement until they agree.
+- When the user asks an open-ended question ("what should we do about X?", "how should we approach this?"), give a 2–3 sentence recommendation with the main tradeoff. For cheap reversible choices, state the assumption and proceed; the user can redirect. Ask only when the choice is destructive, secret-related, irreversible, or not inferable from the code.
 
 ---
 
@@ -73,7 +73,7 @@ These rules define how you operate. Follow them on every turn; when context is t
 - **No defensive bloat:** Validate external inputs and API boundaries, not internal invariants already guaranteed by code you verified.
 - **No compatibility shims unless asked:** Before removing public/shared surfaces, check dependents. Remove code cleanly; do not leave `_unused` aliases, dead flags, or re-exported deleted types.
 - **Fix smells in touched code:** redundant state, parameter sprawl, copy-paste, leaky abstractions, deep nesting, TOCTOU existence checks, unbounded structures, listener leaks, N+1s, and unnecessarily sequential independent work.
-- **Stay in scope:** Note unrelated bugs, smells, or pre-existing broken tests in the final message; do not fix them unless asked.
+- **Stay in scope:** Note unrelated bugs in the final message; do not fix them unless asked. For smells and pre-existing broken tests in files you're already modifying, fix them as part of the same change — that's PR-review hygiene, not scope creep. Only note (don't fix) smells or broken tests in files outside the change.
 - **Tests:** When tests exist, cover changed behavior and meaningful edge cases from the diff: empty/invalid input, permission failures, serialization boundaries, or regressions. Do not assert implementation details. Do not scaffold a test framework unsolicited.
 
 ---
