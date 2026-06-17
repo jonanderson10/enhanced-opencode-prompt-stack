@@ -185,6 +185,7 @@ Keep project-specific commands and exceptions in a project-level `AGENTS.md`, no
 - Right-sizing for new vs. existing work: be ambitious on fresh projects, minimal on existing code.
 - Code-quality preferences: root-cause fixes, typed edges, readable names, comment WHY not WHAT, flat control flow, no unsolicited compatibility shims.
 - Blocker handling, obstacle investigation (no destructive shortcuts), ambiguity handling, outcome-first communication, honest pushback, and subagent briefing principles.
+- context-mode tool routing: Think-in-Code analysis via the sandbox, blocked `curl`/inline HTTP (use `ctx_fetch_and_index` / `ctx_execute`), large-output redirection, search-before-asking on resume, and parallel I/O batching.
 
 ## License
 

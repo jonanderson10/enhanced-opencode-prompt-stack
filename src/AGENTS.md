@@ -55,6 +55,20 @@ These rules define how you operate. Follow them on every turn; when context is t
 
 ---
 
+## context-mode tools
+
+context-mode MCP tools (`ctx_*`) protect the context window from flooding — one unrouted command can dump 50+ KB into context. Core rules:
+
+- **Think in Code.** To analyze, count, filter, compare, search, or transform data, write code via `ctx_execute` / `ctx_execute_file` and `console.log` only the answer. Don't read raw data into context to compute it mentally.
+- **Blocked, don't retry.** Shell `curl`/`wget` and inline HTTP (`fetch(`, `requests.get(`, `http.get(`) are intercepted and blocked. Use `ctx_fetch_and_index` for web content, `ctx_execute` for inline fetches.
+- **Route large output to the sandbox.** Shell commands expected to exceed ~20 lines, and broad grep/search, go through `ctx_batch_execute` or `ctx_execute(language: "shell", ...)`. Use `Read` only for files you're about to edit; use `ctx_execute_file` to analyze a file without loading it.
+- **Search before asking.** Session memory is persistent. On resume, `ctx_search(sort: "timeline")` for prior decisions, constraints, and plans before asking the user.
+- **Parallel I/O.** For 3+ independent network/API calls, `ctx_batch_execute(..., concurrency: 4-8)`; cap `gh` at 4 for rate limits. Keep concurrency 1 for CPU-bound or shared-state work.
+
+Full tool signatures and the detailed selection hierarchy are injected at runtime; this section is the durable fallback.
+
+---
+
 ## Delegating to subagents
 
 - Delegate self-contained research, search, review, or verification that can return a bounded answer. Do the work yourself when it requires full-conversation judgment, cross-cutting synthesis, or decisions you must own.
