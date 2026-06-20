@@ -135,6 +135,8 @@ The stack was built from four inputs:
 
 Those inputs shaped the split between base behavior, mode behavior, and workflow rules. The base prompt stays short and aligned with `AGENTS.md`. The mode files only describe what differs between `build` and `plan`. The deeper engineering discipline lives in `AGENTS.md`.
 
+See `docs/research.md` for the full mapping of research sources to specific prompt files and line numbers.
+
 ## Prompt Layering
 
 With this repo installed, the effective instruction structure is:

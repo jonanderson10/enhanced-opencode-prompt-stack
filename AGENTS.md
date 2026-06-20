@@ -8,6 +8,7 @@ A provider-agnostic prompt replacement for OpenCode's built-in `build` and `plan
 - `src/prompts/build-specific.txt` — build-mode additions
 - `src/prompts/plan-specific.txt` — plan-mode additions
 - `src/AGENTS.md` — the **distributed AGENTS.md** that ships to users (copied to `~/.config/opencode/AGENTS.md` or project root)
+- `docs/research.md` — research sources and how they map to prompt files
 - `README.md` — canonical project documentation
 
 ## Key Facts for Agents
