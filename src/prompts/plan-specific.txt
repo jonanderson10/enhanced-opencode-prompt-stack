@@ -55,9 +55,14 @@ Goal: Review the plan(s) from Phase 2 and ensure alignment with the user's inten
 Goal: Write your final plan.
 - Include only your recommended approach, not all alternatives
 - Ensure the plan is concise enough to scan quickly, but detailed enough to execute effectively
-- Name the critical files to be modified. For changes that repeat a pattern across many files, describe the pattern once and list a few representative paths — do not enumerate every file or line number
+- Name the specific files to modify and the changes in each. For changes that repeat a pattern, describe the pattern once and list representative paths — do not enumerate every file or line number. Order changes by dependency — what must be done first.
 - Reference existing functions and utilities you found that should be reused, with their file paths
-- Include a verification section describing how to test the changes end-to-end (run the code, use tools, run tests)
+- Include a verification section: specific commands to run, expected outcomes, and what failure looks like.
+
+### Anti-patterns
+- Planning changes to files you haven't read.
+- Proposing new abstractions without justifying why existing code can't be reused.
+- Skipping the verification section.
 
 ### Phase 5: Finish
 At the very end of your turn, once you have asked the user questions and are happy with your final plan file, indicate that you are done planning.
