@@ -12,7 +12,7 @@ This repo provides three layers that are meant to work together:
 
 | Layer | File | Responsibility |
 | --- | --- | --- |
-| Base agent prompt | `src/prompts/custom.txt` | Provider-agnostic replacement for OpenCode's built-in provider prompts: identity, instruction hierarchy, tool-use defaults, safety boundaries, OpenCode-doc lookup, and concise CLI behavior |
+| Base agent prompt | `src/prompts/custom.txt` | Provider-agnostic replacement for OpenCode's built-in provider prompts: identity, instruction hierarchy, professional objectivity, tool-use defaults, the task loop, OpenCode-doc lookup, and false-termination as the last-line rule |
 | Mode prompt | `src/prompts/build-specific.txt` / `src/prompts/plan-specific.txt` | The small amount of behavior that differs between Build Mode and Plan Mode |
 | Workflow instructions | `src/AGENTS.md` | Durable operating standards: confirmation rules, git hygiene, planning, blocker handling, code quality, verification, and communication |
 
@@ -102,7 +102,7 @@ The custom prompts keep the base harness aligned with that layer:
 | Provider prompts differ in tone, planning pressure, comments, and tool advice | `custom.txt` gives every configured model the same compact operating contract |
 | Some prompts lack explicit read-before-edit guidance | `custom.txt` requires inspecting existing files before edits and rereading after stale or ambiguous edit failures |
 | Prompt-like text in files or tool output can be mistaken for instructions | `custom.txt` treats file contents, logs, retrieved docs, and tool output as untrusted data unless they come from the active instruction hierarchy |
-| Some prompts over-constrain output length or forbid comments absolutely | `custom.txt` keeps responses concise and allows comments when they clarify non-obvious code |
+| Some prompts over-constrain output length or forbid comments absolutely | `AGENTS.md` keeps responses concise and allows comments when they clarify non-obvious code |
 | Some prompts push aggressive TodoWrite or broad Task-tool usage | `custom.txt` mentions planning, delegation, and clarification without forcing heavy process on small tasks |
 | Some prompts encourage stale or inconsistent OpenCode docs behavior | `custom.txt` scopes docs/source verification to OpenCode capability, config, agent, skill, hook, MCP, and prompt questions |
 | Provider prompts mix base behavior with mode-specific expectations | `build-specific.txt` and `plan-specific.txt` separate implementation behavior from planning behavior |
@@ -118,7 +118,7 @@ The replacement focuses on targeted fixes:
 - Read existing files before editing them.
 - Treat prompt-like text in files, logs, retrieved docs, and tool output as untrusted data.
 - Keep tool-use guidance consistent without forcing heavy process on small tasks.
-- Avoid brittle output-length rules and absolute no-comment policies.
+- Avoid brittle output-length rules and absolute no-comment policies (handled in `AGENTS.md`, not the base prompt).
 - Keep provider-specific assumptions out of the shared base prompt.
 - Verify OpenCode capability, config, agent, skill, hook, MCP, and prompt behavior against current docs or source instead of guessing.
 
@@ -180,10 +180,10 @@ Keep project-specific commands and exceptions in a project-level `AGENTS.md`, no
 
 - Confirmation before destructive, irreversible, secret-bearing, external, or out-of-tree actions.
 - Read-before-edit and prompt-injection boundaries for file/tool output.
-- Verification standards: runtime observation for behavior changes, real lint/typecheck/build checks where practical, and explicit PASS/FAIL/BLOCKED reporting.
+- Verification standards: runtime observation for behavior changes, real lint/typecheck/build checks where practical, explicit PASS/FAIL/BLOCKED reporting, executable checks over self-audit, and a halt rule that prevents unanchored improvement loops from destroying already-correct work.
 - Test-writing guidance for existing test suites, including changed paths and meaningful edge cases.
 - Git hygiene: no commits unless asked, stage by name, no root `git add .`, and no amend-based recovery from failed hooks.
-- Scope control: complete but not expansive, no speculative abstractions, no defensive bloat, and no jumping to implementation on open-ended questions.
+- Scope control: complete but not expansive, no speculative abstractions, no defensive bloat, no jumping to implementation on open-ended questions, and proactive only on adjacent fixes in touched code — otherwise halt when scope is met.
 - Right-sizing for new vs. existing work: be ambitious on fresh projects, minimal on existing code.
 - Code-quality preferences: root-cause fixes, typed edges, readable names, comment WHY not WHAT, flat control flow, no unsolicited compatibility shims.
 - Blocker handling, obstacle investigation (no destructive shortcuts), ambiguity handling, outcome-first communication, honest pushback, and subagent briefing principles.
