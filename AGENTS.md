@@ -1,10 +1,10 @@
 # Repository: Enhanced OpenCode Prompt Stack
 
-A provider-agnostic prompt replacement for OpenCode's built-in `build` and `plan` agent prompts, paired with a workflow-layer `AGENTS.md` for safety, verification, git hygiene, and code quality.
+A model-agnostic prompt replacement for OpenCode's built-in `build` and `plan` agent prompts, paired with a workflow-layer `AGENTS.md` for safety, verification, git hygiene, and code quality. The stack is tightly coupled to OpenCode as a harness — it is not portable to other agent harnesses.
 
 ## Repo Structure
 
-- `src/prompts/custom.txt` — shared base prompt for all providers (replaces OpenCode's `gpt.txt`, `kimi.txt`, `anthropic.txt`, `default.txt`)
+- `src/prompts/custom.txt` — shared base prompt for all models (replaces OpenCode's `gpt.txt`, `kimi.txt`, `anthropic.txt`, `default.txt`)
 - `src/prompts/build-specific.txt` — build-mode additions
 - `src/prompts/plan-specific.txt` — plan-mode additions
 - `src/AGENTS.md` — the **distributed AGENTS.md** that ships to users (copied to `~/.config/opencode/AGENTS.md` or project root)

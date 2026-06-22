@@ -43,6 +43,3 @@ When referencing specific functions or pieces of code include the pattern `file_
 user: Where are errors from the client handled?
 assistant: Clients are marked as failed in the `connectToServer` function in src/services/process.ts:712.
 </example>
-
-# Critical Reminders
-- YOU MUST run the real check (lint, typecheck, tests) and cite its output before reporting done. Check `git diff` for scope creep. Reporting done from a simulated or imagined verification is a false-termination failure.
