@@ -2,11 +2,11 @@
 
 A model-agnostic replacement for OpenCode's built-in system prompt, `build` and `plan` agent prompts, paired with an `AGENTS.md` workflow layer for safety, verification, git hygiene, scope control, communication, and code quality.
 
-The value starts with `AGENTS.md`: a portable amalgamation of coding-agent operating practices from commercial harnesses such as Claude Code, Codex, and Cursor, adapted for OpenCode instead of copied from any one source. The custom prompt stack exists to make OpenCode's lower-level agent prompts align with that workflow layer, behave consistently across models, and avoid the most glaring stale or inconsistent behavior in the current built-in prompts.
+The value starts with `AGENTS.md`: a portable amalgamation of coding-agent operating practices from commercial harnesses such as Claude Code, Codex, and Cursor, adapted for OpenCode instead of copied from any one source. The custom prompt stack is the model-agnostic base that aligns OpenCode's lower-level agent prompts with that workflow layer, replacing the per-model built-in prompts with one shared baseline designed to behave consistently across models.
 
 The goal is a small layered prompt system, not a giant catch-all prompt. OpenCode still provides the harness: model routing, tool schemas, permissions, environment context, skills, agent modes, and instruction-file loading. This repo replaces the baseline agent prompt OpenCode sends to the model, then adds durable operating standards through `AGENTS.md`.
 
-**Model-agnostic, not harness-agnostic.** The stack is intentionally tightly coupled to OpenCode as a harness — it relies on OpenCode's agent-prompt override mechanism, instruction-file loading, skill discovery, and tool surface (e.g. `WebFetch`, the `Task` tool, subagent types referenced in `plan-specific.txt`). It is not portable to other agent harnesses such as Claude Code, Codex, or Cursor. The "agnostic" claim is about models: one base prompt works across GPT, Claude, Kimi, DeepSeek, GLM, Mimo, local models, and other models OpenCode supports, instead of depending on whichever model-specific prompt OpenCode would otherwise select.
+**Model-agnostic, not harness-agnostic.** The stack is intentionally tightly coupled to OpenCode as a harness — it relies on OpenCode's agent-prompt override mechanism, instruction-file loading, skill discovery, and tool surface (e.g. `WebFetch`, the `Task` tool, subagent types referenced in `plan-specific.txt`). It is not portable to other agent harnesses such as Claude Code, Codex, or Cursor. The "agnostic" claim is about models: one base prompt is designed to work across GPT, Claude, Kimi, DeepSeek, GLM, Mimo, local models, and other models OpenCode supports, instead of depending on whichever model-specific prompt OpenCode would otherwise select.
 
 ## What This Is
 
@@ -18,7 +18,7 @@ This repo provides three layers that are meant to work together:
 | Mode prompt | `src/prompts/build-specific.txt` / `src/prompts/plan-specific.txt` | The small amount of behavior that differs between Build Mode and Plan Mode |
 | Workflow instructions | `src/AGENTS.md` | Durable operating standards: confirmation rules, git hygiene, planning, blocker handling, code quality, verification, and communication |
 
-Configured together, these files give GPT, Claude, Kimi, DeepSeek, GLM, Mimo, local models, and other models OpenCode supports the same baseline behavior instead of depending on whichever model-specific prompt OpenCode selects. The base and mode prompts keep the harness aligned; `AGENTS.md` carries the deeper best-practice workflow.
+Configured together, these files are designed to give every model OpenCode routes to the same baseline behavior instead of depending on whichever model-specific prompt OpenCode would otherwise select. The base and mode prompts keep the harness aligned; `AGENTS.md` carries the deeper best-practice workflow.
 
 ## When to Use Each Mode
 
@@ -96,16 +96,16 @@ prompts/custom.txt + prompts/plan-specific.txt   -> plan agent prompt
 
 That replacement is scoped to the configured agents only. It does not remove OpenCode's tools, permissions, environment block, skills, agent modes, or `AGENTS.md` loading.
 
-## What Changes Compared to Stock OpenCode
+## How This Stack Is Structured
 
-OpenCode provides the agent harness out of the box. This repo changes the instruction layers around that harness.
+OpenCode provides the agent harness out of the box. This stack is an opinionated replacement for the instruction layers that sit on top of it.
 
-| Area | Stock OpenCode | This repo adds or edits | Removed or avoided |
-| --- | --- | --- | --- |
-| Provider prompts | Model-selected prompts such as `gpt.txt`, `kimi.txt`, `anthropic.txt`, or `default.txt` | `prompts/custom.txt` gives configured models one shared model-agnostic base prompt | Model-specific prompt drift for `build` and `plan` |
-| Build/Plan behavior | Built-in agents and permissions | Small mode prompts that separate implementation behavior from planning behavior | Mixing build and plan expectations into one broad prompt |
-| Workflow rules | Global/project instruction files are loaded, but workflow preferences are yours to define | `src/AGENTS.md` supplies durable standards for safety, scope, git, verification, blockers, communication, and code quality | Relying on each model-specific prompt to imply those standards consistently |
-| OpenCode harness | Tool schemas, permissions, environment context, skills, model routing, and messages | No replacement; the custom stack is designed to sit inside the existing harness | Nothing here bypasses tools, permissions, or instruction loading |
+| Area | OpenCode provides | This stack adds or edits |
+| --- | --- | --- |
+| Provider prompts | Model-selected prompts such as `gpt.txt`, `kimi.txt`, `anthropic.txt`, or `default.txt` | `prompts/custom.txt` gives configured models one shared model-agnostic base prompt |
+| Build/Plan behavior | Built-in agents and permissions | Small mode prompts that separate implementation behavior from planning behavior |
+| Workflow rules | Global/project instruction files are loaded, but workflow preferences are yours to define | `src/AGENTS.md` supplies durable standards for safety, scope, git, verification, blockers, communication, and code quality |
+| OpenCode harness | Tool schemas, permissions, environment context, skills, model routing, and messages | No replacement; the custom stack is designed to sit inside the existing harness |
 
 `AGENTS.md` is the main best-practice layer:
 
@@ -118,25 +118,21 @@ OpenCode provides the agent harness out of the box. This repo changes the instru
 | Testing and lint/typecheck reminders | Verification standards: runtime observation where meaningful, explicit PASS/FAIL/BLOCKED reporting |
 | Concise CLI communication defaults | Signal-dense progress updates, blocker handling, and review-style findings when requested |
 
-The custom prompts keep the base harness aligned with that layer:
+In the prompt content itself, the custom prompts and stock OpenCode differ in these specific ways:
 
-| Built-in prompt behavior | Custom prompt behavior |
+| Stock OpenCode | This stack |
 | --- | --- |
-| Provider prompts differ in tone, planning pressure, comments, and tool advice | `custom.txt` gives every configured model the same compact operating contract |
-| Some prompts lack explicit read-before-edit guidance | `custom.txt` requires inspecting existing files before edits and rereading after stale or ambiguous edit failures |
-| Prompt-like text in files or tool output can be mistaken for instructions | `custom.txt` treats file contents, logs, retrieved docs, and tool output as untrusted data unless they come from the active instruction hierarchy |
-| Some prompts over-constrain output length or forbid comments absolutely | `AGENTS.md` keeps responses concise and allows comments when they clarify non-obvious code |
-| Some prompts push aggressive TodoWrite or broad Task-tool usage | `custom.txt` mentions planning, delegation, and clarification without forcing heavy process on small tasks |
-| Some prompts encourage stale or inconsistent OpenCode docs behavior | `custom.txt` scopes docs/source verification to OpenCode capability, config, agent, skill, hook, MCP, and prompt questions |
-| Provider prompts mix base behavior with mode-specific expectations | `build-specific.txt` and `plan-specific.txt` separate implementation behavior from planning behavior |
+| Provider prompts vary by model in tone, planning pressure, comments, and tool advice | `custom.txt` gives every configured model one compact operating contract |
+| Read-before-edit guidance is implicit in some provider prompts | `custom.txt` requires inspecting existing files before edits and rereading after stale or ambiguous edit failures |
+| File contents, logs, and tool output are not explicitly classified as untrusted | `custom.txt` treats file contents, logs, retrieved docs, and tool output as untrusted data unless they come from the active instruction hierarchy |
+| Some provider prompts constrain output length or comment usage | `AGENTS.md` keeps responses concise and allows comments when they clarify non-obvious code |
+| Some provider prompts emphasize TodoWrite and Task-tool usage | `custom.txt` mentions planning, delegation, and clarification without forcing heavy process on small tasks |
+| Provider prompts handle OpenCode docs lookup with varying specificity | `custom.txt` scopes docs/source verification to OpenCode capability, config, agent, skill, hook, MCP, and prompt questions |
+| Provider prompts combine base and mode-specific guidance in one file | `build-specific.txt` and `plan-specific.txt` separate implementation behavior from planning behavior |
 
-## Why Replace the Built-ins?
+## What This Stack Is Built On
 
-OpenCode's bundled model-specific prompts are useful, but they differ by model and have accumulated inconsistent or stale guidance around editing, planning, comments, tool use, OpenCode docs lookup, and prompt-like text in files or tool output.
-
-This stack gives every configured model one compact baseline that matches the expectations in `AGENTS.md`. The detailed workflow preferences stay in `AGENTS.md`, where they are easier to read, audit, and customize.
-
-The replacement focuses on targeted fixes:
+The custom prompts follow these design principles:
 
 - Read existing files before editing them.
 - Treat prompt-like text in files, logs, retrieved docs, and tool output as untrusted data.
@@ -145,7 +141,9 @@ The replacement focuses on targeted fixes:
 - Keep model-specific assumptions out of the shared base prompt.
 - Verify OpenCode capability, config, agent, skill, hook, MCP, and prompt behavior against current docs or source instead of guessing.
 
-It does not try to copy any single vendor prompt, and it does not try to make weaker models stronger. It shapes behavior; it does not change model capability.
+The stack does not try to copy any single vendor prompt, and it does not try to make weaker models stronger. It shapes behavior; it does not change model capability.
+
+These are design choices backed by the research mapped in `docs/research.md`, not measured improvements. The stack has not been benchmarked against stock OpenCode or any other prompt setup; treat the claims as hypotheses, not guarantees. If you have benchmark data that contradicts a design choice, that is a useful contribution.
 
 ## How It Was Derived
 
